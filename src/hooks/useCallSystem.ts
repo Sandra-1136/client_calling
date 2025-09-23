@@ -279,6 +279,8 @@ export const useCallSystem = () => {
         }
       }, 1500);
     }
+  }
+  )
   const startAutoCalling = useCallback(() => {
     if (isAutoCallActive || employees.length === 0) {
       console.log('❌ Cannot start auto calling - already active or no employees');
