@@ -51,9 +51,16 @@ export const useCallSystem = () => {
       setEmployees(employeeData);
     } catch (error) {
       console.error('Failed to load employees:', error);
-      // If Supabase is not connected, show empty state
-      if (error instanceof Error && error.message.includes('connect to Supabase')) {
+      // If Supabase is not connected or tables don't exist, show empty state
+      if (error instanceof Error && (
+        error.message.includes('connect to Supabase') ||
+        error.message.includes('Database tables not found')
+      )) {
         setEmployees([]);
+        // Show user-friendly message for missing tables
+        if (error.message.includes('Database tables not found')) {
+          alert('⚠️ Database Setup Required\n\nThe database tables are not set up yet. Please:\n\n1. Go to your Supabase project dashboard\n2. Navigate to SQL Editor\n3. Run the migration files from the supabase/migrations folder\n\nAfter running the migrations, refresh this page.');
+        }
       }
     }
   };

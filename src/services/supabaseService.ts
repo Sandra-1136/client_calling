@@ -68,27 +68,17 @@ export class SupabaseService {
       throw new Error('Please connect to Supabase first');
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
 
-      if (error) {
-        if (error.code === 'PGRST205') {
-          throw new Error('Database tables not found. Please run the SQL migrations in your Supabase project dashboard.');
-        }
-        throw new Error(`Failed to fetch clients: ${error.message}`);
-      }
-
-      return data.map(client => this.convertToEmployee(client));
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('PGRST205')) {
-        throw new Error('Database tables not found. Please run the SQL migrations in your Supabase project dashboard.');
-      }
-      throw error;
+    if (error) {
+      throw new Error(`Failed to fetch clients: ${error.message}`);
     }
+
+    return data.map(client => this.convertToEmployee(client));
   }
 
   async addClient(clientData: {
@@ -408,6 +398,10 @@ export class SupabaseService {
       throw new Error('User not authenticated');
     }
 
+    if (!supabase) {
+      return 0;
+    }
+
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -417,18 +411,30 @@ export class SupabaseService {
     endOfMonth.setDate(0);
     endOfMonth.setHours(23, 59, 59, 999);
 
-    const { data, error } = await supabase
-      .from('appointments')
-      .select('id')
-      .eq('user_id', user.id)
-      .gte('appointment_date', startOfMonth.toISOString())
-      .lte('appointment_date', endOfMonth.toISOString());
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('appointment_date', startOfMonth.toISOString())
+        .lte('appointment_date', endOfMonth.toISOString());
 
-    if (error) {
-      throw new Error(`Failed to fetch monthly appointments: ${error.message}`);
+      if (error) {
+        if (error.code === 'PGRST205') {
+          console.warn('Appointments table not found, returning 0');
+          return 0;
+        }
+        throw new Error(`Failed to fetch monthly appointments: ${error.message}`);
+      }
+
+      return data.length;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('PGRST205')) {
+        console.warn('Appointments table not found, returning 0');
+        return 0;
+      }
+      throw error;
     }
-
-    return data.length;
   }
 
   // Feedback Methods
