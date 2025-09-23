@@ -71,9 +71,7 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         <button 
           onClick={() => {
             try {
-              if (onFilterAnswered) {
-                onFilterAnswered();
-              }
+              onFilterAnswered && onFilterAnswered();
             } catch (error) {
               console.error('Error filtering answered contacts:', error);
             }
@@ -91,9 +89,7 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         <button 
           onClick={() => {
             try {
-              if (onFilterMissed) {
-                onFilterMissed();
-              }
+              onFilterMissed && onFilterMissed();
             } catch (error) {
               console.error('Error filtering missed contacts:', error);
             }
@@ -111,9 +107,7 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         <button 
           onClick={() => {
             try {
-              if (onFilterPending) {
-                onFilterPending();
-              }
+              onFilterPending && onFilterPending();
             } catch (error) {
               console.error('Error filtering pending contacts:', error);
             }
@@ -194,9 +188,7 @@ export const CallStatus: React.FC<CallStatusProps> = ({
           <button
             onClick={() => {
               try {
-                if (onFilterCompleted) {
-                  onFilterCompleted();
-                }
+                onFilterCompleted && onFilterCompleted();
               } catch (error) {
                 console.error('Error filtering completed contacts:', error);
               }
@@ -215,9 +207,7 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         <button 
           onClick={() => {
             try {
-              if (onFilterUrgent) {
-                onFilterUrgent();
-              }
+              onFilterUrgent && onFilterUrgent();
             } catch (error) {
               console.error('Error filtering urgent contacts:', error);
             }

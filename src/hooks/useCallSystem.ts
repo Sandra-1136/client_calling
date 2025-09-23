@@ -187,13 +187,17 @@ export const useCallSystem = () => {
         if (isAutoCallingRef.current) {
           autoCallTimeoutRef.current = setTimeout(() => {
             if (isAutoCallingRef.current) {
-              // Get fresh employee data and start second cycle with unanswered contacts
-              const unansweredEmployees = employees.filter(emp => emp.status === 'missed' || emp.status === 'pending');
+              // Get fresh employee data and start second cycle with unanswered contacts  
+              const currentEmployees = employees;
+              const unansweredEmployees = currentEmployees.filter(emp => 
+                emp.status === 'missed' || emp.status === 'pending'
+              );
               if (unansweredEmployees.length > 0) {
                 console.log(`🔄 Starting second round with ${unansweredEmployees.length} unanswered contacts`);
                 processSecondCycle(0);
               } else {
                 console.log('🎉 All contacts answered! Auto calling completed.');
+                alert('🎉 All contacts have been successfully reached!');
                 stopAutoCalling();
               }
             }
@@ -225,8 +229,11 @@ export const useCallSystem = () => {
       return;
     }
 
-    // Get current unanswered employees (missed and pending only, NOT answered)
-    const unansweredEmployees = employees.filter(emp => emp.status === 'missed' || emp.status === 'pending');
+    // Get fresh employee data and filter for unanswered only
+    const currentEmployees = employees;
+    const unansweredEmployees = currentEmployees.filter(emp => 
+      emp.status === 'missed' || emp.status === 'pending'
+    );
     
     if (unansweredEmployees.length === 0) {
       console.log('🎉 All contacts have been reached! Auto calling completed.');
@@ -244,8 +251,8 @@ export const useCallSystem = () => {
       return;
     }
     
-    // Find the actual index in the full employees array for UI display
-    const actualIndex = employees.findIndex(emp => emp.id === currentEmployee.id);
+    // Find the actual index in the full employees array for UI display  
+    const actualIndex = currentEmployees.findIndex(emp => emp.id === currentEmployee.id);
     console.log(`🔄 Second round - calling unanswered contact ${currentIndex + 1}/${unansweredEmployees.length}: ${currentEmployee.name}`);
     
     setCurrentEmployeeIndex(actualIndex);
@@ -272,7 +279,6 @@ export const useCallSystem = () => {
         }
       }, 1500);
     }
-  }, [employees, callEmployee]);
   const startAutoCalling = useCallback(() => {
     if (isAutoCallActive || employees.length === 0) {
       console.log('❌ Cannot start auto calling - already active or no employees');

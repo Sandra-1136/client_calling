@@ -75,22 +75,27 @@ function App() {
   };
 
   const handleFilterCompleted = () => {
+    console.log('Setting filter to completed');
     setContactFilter('completed');
   };
 
   const handleFilterAnswered = () => {
+    console.log('Setting filter to answered');
     setContactFilter('answered');
   };
 
   const handleFilterMissed = () => {
+    console.log('Setting filter to missed');
     setContactFilter('missed');
   };
 
   const handleFilterPending = () => {
+    console.log('Setting filter to pending');
     setContactFilter('pending');
   };
 
   const handleFilterUrgent = () => {
+    console.log('Setting filter to urgent');
     setContactFilter('urgent');
   };
 
