@@ -7,7 +7,6 @@ export const useCallSystem = () => {
   const [isAutoCallActive, setIsAutoCallActive] = useState(false);
   const [currentCallingId, setCurrentCallingId] = useState<string | null>(null);
   const [currentEmployeeIndex, setCurrentEmployeeIndex] = useState(0);
-  const [isFirstCycle, setIsFirstCycle] = useState(true);
   const [stats, setStats] = useState<CallSystemStats>({
     totalEmployees: 0,
     answered: 0,
@@ -158,91 +157,22 @@ export const useCallSystem = () => {
       return;
     }
 
-    if (isFirstCycle) {
-      // First cycle: call ALL employees one by one
-      const currentEmployee = employees[employeeIndex];
-      
-      if (!currentEmployee) {
-        console.log('❌ No employee found at index', employeeIndex);
-        stopAutoCalling();
-        return;
-      }
-      
-      console.log(`🔄 First cycle - calling contact ${employeeIndex + 1}/${employees.length}: ${currentEmployee.name}`);
-      setCurrentEmployeeIndex(employeeIndex);
-      
-      try {
-        await callEmployee(currentEmployee.id);
-      } catch (error) {
-        console.error('Error calling contact:', error);
-      }
-      
-      // Check if first cycle is complete
-      if (employeeIndex >= employees.length - 1) {
-        console.log('✅ First cycle completed! All contacts have been called once.');
-        setIsFirstCycle(false);
-        setStats(prev => ({ ...prev, currentRound: prev.currentRound + 1 }));
-        
-        // Start second cycle with unanswered contacts
-        if (isAutoCallingRef.current) {
-          autoCallTimeoutRef.current = setTimeout(() => {
-            if (isAutoCallingRef.current) {
-              // Get fresh employee data and start second cycle with unanswered contacts  
-              const currentEmployees = employees;
-              const unansweredEmployees = currentEmployees.filter(emp => 
-                emp.status === 'missed' || emp.status === 'pending'
-              );
-              if (unansweredEmployees.length > 0) {
-                console.log(`🔄 Starting second round with ${unansweredEmployees.length} unanswered contacts`);
-                processSecondCycle(0);
-              } else {
-                console.log('🎉 All contacts answered! Auto calling completed.');
-                alert('🎉 All contacts have been successfully reached!');
-                stopAutoCalling();
-              }
-            }
-          }, 1500);
-        }
-        return;
-      }
-      
-      // Continue to next employee in first cycle
-      if (isAutoCallingRef.current) {
-        const nextIndex = employeeIndex + 1;
-        autoCallTimeoutRef.current = setTimeout(() => {
-          if (isAutoCallingRef.current) {
-            processAutoCall(nextIndex);
-          }
-        }, 1500);
-      }
-      
-    } else {
-      // This should not be reached anymore as we use processSecondCycle
-      console.log('⚠️ Unexpected: processAutoCall called for second cycle');
-      stopAutoCalling();
-    }
-  }, [employees, callEmployee, isFirstCycle]);
-
-  const processSecondCycle = useCallback(async (missedIndex: number) => {
-    if (!isAutoCallingRef.current) {
-      console.log('🛑 Auto calling stopped');
-      return;
-    }
-
-    // Get fresh employee data and filter for unanswered only
+    // Get current employees and filter for unanswered only
     const currentEmployees = employees;
     const unansweredEmployees = currentEmployees.filter(emp => 
       emp.status === 'missed' || emp.status === 'pending'
     );
     
+    // If no unanswered employees, stop auto calling
     if (unansweredEmployees.length === 0) {
-      console.log('🎉 All contacts have been reached! Auto calling completed.');
-      alert('🎉 All contacts have been successfully reached!');
+      console.log('✅ All clients have been reached! Auto calling completed.');
+      alert('🎉 All clients have been successfully reached!');
       stopAutoCalling();
       return;
     }
-
-    const currentIndex = missedIndex % unansweredEmployees.length;
+    
+    // Get the current unanswered employee
+    const currentIndex = employeeIndex % unansweredEmployees.length;
     const currentEmployee = unansweredEmployees[currentIndex];
     
     if (!currentEmployee) {
@@ -251,65 +181,76 @@ export const useCallSystem = () => {
       return;
     }
     
-    // Find the actual index in the full employees array for UI display  
+    // Find the actual index in the full employees array for UI display
     const actualIndex = currentEmployees.findIndex(emp => emp.id === currentEmployee.id);
-    console.log(`🔄 Second round - calling unanswered contact ${currentIndex + 1}/${unansweredEmployees.length}: ${currentEmployee.name}`);
+    console.log(`🔄 Auto calling - Round ${stats.currentRound} - calling unanswered contact ${currentIndex + 1}/${unansweredEmployees.length}: ${currentEmployee.name}`);
     
     setCurrentEmployeeIndex(actualIndex);
     
     try {
-      await callEmployee(currentEmployee.id);
+      const callResult = await callEmployee(currentEmployee.id);
+      console.log(`📞 Call result for ${currentEmployee.name}: ${callResult ? 'answered' : 'missed'}`);
     } catch (error) {
-      console.error('Error calling unanswered contact:', error);
+      console.error('Error calling contact:', error);
     }
     
-    // Continue to next unanswered employee
+    // Continue to next unanswered employee after a short delay
     if (isAutoCallingRef.current) {
-      const nextIndex = (currentIndex + 1) % unansweredEmployees.length;
+      const nextIndex = currentIndex + 1;
       
-      // If we've cycled back to the beginning of unanswered list, increment round
-      if (nextIndex === 0) {
+      // If we've cycled through all unanswered contacts, increment round
+      if (nextIndex >= unansweredEmployees.length) {
         setStats(prev => ({ ...prev, currentRound: prev.currentRound + 1 }));
-        console.log(`🔄 Starting new round - ${unansweredEmployees.length} unanswered contacts remaining`);
+        console.log(`🔄 Completed round ${stats.currentRound}, starting next round`);
       }
       
       autoCallTimeoutRef.current = setTimeout(() => {
         if (isAutoCallingRef.current) {
-          processSecondCycle(nextIndex);
+          processAutoCall(nextIndex);
         }
       }, 1500);
     }
-  }
-  )
+  }, [employees, callEmployee, isFirstCycle]);
+  }, [employees, callEmployee, stats.currentRound]);
+
   const startAutoCalling = useCallback(() => {
     if (isAutoCallActive || employees.length === 0) {
       console.log('❌ Cannot start auto calling - already active or no employees');
       return;
     }
     
-    console.log('🚀 Starting auto calling - First cycle will call all contacts');
-    console.log(`📊 Total contacts: ${employees.length}`);
+    const unansweredEmployees = employees.filter(emp => 
+      emp.status === 'missed' || emp.status === 'pending'
+    );
+    
+    if (unansweredEmployees.length === 0) {
+      console.log('✅ All contacts have already been answered!');
+      alert('🎉 All contacts have already been answered!');
+      return;
+    }
+    
+    console.log('🚀 Starting auto calling sequence');
+    console.log(`📊 Total contacts: ${employees.length}, Unanswered: ${unansweredEmployees.length}`);
     setIsAutoCallActive(true);
     isAutoCallingRef.current = true;
-    setIsFirstCycle(true);
     
-    // Set UI to show first contact
-    setCurrentEmployeeIndex(0);
+    // Find the first unanswered contact for UI display
+    const firstUnansweredIndex = employees.findIndex(emp => 
+      emp.status === 'missed' || emp.status === 'pending'
+    );
+    setCurrentEmployeeIndex(firstUnansweredIndex >= 0 ? firstUnansweredIndex : 0);
     
-    // Start calling from index 0 of full list
+    // Start calling from index 0 of unanswered list
     setTimeout(() => {
       if (isAutoCallingRef.current) {
         processAutoCall(0);
       }
     }, 500);
-  }
-  )
 
   const stopAutoCalling = useCallback(() => {
     console.log('🛑 Stopping auto calling');
     setIsAutoCallActive(false);
     isAutoCallingRef.current = false;
-    setIsFirstCycle(true);
     
     if (autoCallTimeoutRef.current) {
       clearTimeout(autoCallTimeoutRef.current);
@@ -325,7 +266,6 @@ export const useCallSystem = () => {
     await supabaseService.resetAllStatuses();
     await loadEmployees();
     setCurrentEmployeeIndex(0);
-    setIsFirstCycle(true);
     setStats(prev => ({ ...prev, currentRound: 1 }));
   };
 
