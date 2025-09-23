@@ -68,17 +68,27 @@ export class SupabaseService {
       throw new Error('Please connect to Supabase first');
     }
 
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
 
-    if (error) {
-      throw new Error(`Failed to fetch clients: ${error.message}`);
+      if (error) {
+        if (error.code === 'PGRST205') {
+          throw new Error('Database tables not found. Please run the SQL migrations in your Supabase project dashboard.');
+        }
+        throw new Error(`Failed to fetch clients: ${error.message}`);
+      }
+
+      return data.map(client => this.convertToEmployee(client));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('PGRST205')) {
+        throw new Error('Database tables not found. Please run the SQL migrations in your Supabase project dashboard.');
+      }
+      throw error;
     }
-
-    return data.map(client => this.convertToEmployee(client));
   }
 
   async addClient(clientData: {
