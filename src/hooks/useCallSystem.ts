@@ -44,6 +44,7 @@ export const useCallSystem = () => {
     };
     loadMonthlyStats();
   }, []);
+
   const loadEmployees = async () => {
     try {
       const employeeData = await supabaseService.getClients();
@@ -210,7 +211,7 @@ export const useCallSystem = () => {
         }
       }, 1500);
     }
-  }, [employees, callEmployee, isFirstCycle]);
+  }, [employees, callEmployee, stats.currentRound]);
 
   const startAutoCalling = useCallback(() => {
     if (isAutoCallActive || employees.length === 0) {
@@ -245,8 +246,7 @@ export const useCallSystem = () => {
         processAutoCall(0);
       }
     }, 500);
-  }
-  )
+  }, [employees, isAutoCallActive, processAutoCall]);
 
   const stopAutoCalling = useCallback(() => {
     console.log('🛑 Stopping auto calling');
