@@ -49,7 +49,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
       {/* Real-time stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4 mb-6">
         <button 
-          onClick={onShowTotalDetails}
+          onClick={() => {
+            try {
+              if (onShowTotalDetails) {
+                onShowTotalDetails();
+              }
+            } catch (error) {
+              console.error('Error showing total details:', error);
+            }
+          }}
           className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 text-center border-2 border-gray-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view total contacts details"
         >
@@ -61,7 +69,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
 
         <button 
-          onClick={onFilterAnswered}
+          onClick={() => {
+            try {
+              if (onFilterAnswered) {
+                onFilterAnswered();
+              }
+            } catch (error) {
+              console.error('Error filtering answered contacts:', error);
+            }
+          }}
           className="bg-green-50 hover:bg-green-100 rounded-lg p-4 text-center border-2 border-green-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view answered contacts"
         >
@@ -73,7 +89,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
 
         <button 
-          onClick={onFilterMissed}
+          onClick={() => {
+            try {
+              if (onFilterMissed) {
+                onFilterMissed();
+              }
+            } catch (error) {
+              console.error('Error filtering missed contacts:', error);
+            }
+          }}
           className="bg-red-50 hover:bg-red-100 rounded-lg p-4 text-center border-2 border-red-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view missed contacts"
         >
@@ -85,7 +109,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
 
         <button 
-          onClick={onFilterPending}
+          onClick={() => {
+            try {
+              if (onFilterPending) {
+                onFilterPending();
+              }
+            } catch (error) {
+              console.error('Error filtering pending contacts:', error);
+            }
+          }}
           className="bg-blue-50 hover:bg-blue-100 rounded-lg p-4 text-center border-2 border-blue-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view unanswered contacts"
         >
@@ -97,7 +129,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
 
         <button 
-          onClick={onShowRoundInfo}
+          onClick={() => {
+            try {
+              if (onShowRoundInfo) {
+                onShowRoundInfo();
+              }
+            } catch (error) {
+              console.error('Error showing round info:', error);
+            }
+          }}
           className="bg-purple-50 hover:bg-purple-100 rounded-lg p-4 text-center border-2 border-purple-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view round information"
         >
@@ -109,7 +149,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
 
         <button 
-          onClick={onShowCurrentClient}
+          onClick={() => {
+            try {
+              if (onShowCurrentClient) {
+                onShowCurrentClient();
+              }
+            } catch (error) {
+              console.error('Error showing current client:', error);
+            }
+          }}
           className="bg-yellow-50 hover:bg-yellow-100 rounded-lg p-4 text-center border-2 border-yellow-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view current client info"
         >
@@ -123,7 +171,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
 
         <button 
-          onClick={onShowMonthlyAppointments}
+          onClick={() => {
+            try {
+              if (onShowMonthlyAppointments) {
+                onShowMonthlyAppointments();
+              }
+            } catch (error) {
+              console.error('Error showing monthly appointments:', error);
+            }
+          }}
           className="bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center border-2 border-orange-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view monthly appointments"
         >
@@ -136,7 +192,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
 
         <div className="bg-teal-50 rounded-lg p-4 text-center border-2 border-teal-200">
           <button
-            onClick={onFilterCompleted}
+            onClick={() => {
+              try {
+                if (onFilterCompleted) {
+                  onFilterCompleted();
+                }
+              } catch (error) {
+                console.error('Error filtering completed contacts:', error);
+              }
+            }}
             className="w-full flex items-center justify-center mb-2 hover:bg-teal-100 transition-colors rounded-lg p-1 cursor-pointer"
             title="Click to view completed work contacts"
           >
@@ -149,7 +213,15 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </div>
 
         <button 
-          onClick={onFilterUrgent}
+          onClick={() => {
+            try {
+              if (onFilterUrgent) {
+                onFilterUrgent();
+              }
+            } catch (error) {
+              console.error('Error filtering urgent contacts:', error);
+            }
+          }}
           className="bg-red-50 hover:bg-red-100 rounded-lg p-4 text-center border-2 border-red-200 transition-all duration-200 hover:shadow-md cursor-pointer"
           title="Click to view urgent contacts"
         >
