@@ -38,7 +38,6 @@ function App() {
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const [detailModalType, setDetailModalType] = useState<'total' | 'answered' | 'missed' | 'pending' | 'round' | 'current' | 'monthly' | 'completed' | 'urgent'>('total');
   const [detailModalTitle, setDetailModalTitle] = useState('');
   const [markedDates, setMarkedDates] = useState<Date[]>([]);
@@ -47,8 +46,7 @@ function App() {
     workHistory: WorkHistory[];
     appointments: Appointment[];
     feedback: ClientFeedback[];
-    reviews: ClientReview[];
-  }>({ workHistory: [], appointments: [], feedback: [], reviews: [] });
+  }>({ workHistory: [], appointments: [], feedback: [] });
 
   // Load marked dates from localStorage on mount
   useEffect(() => {
@@ -140,57 +138,6 @@ function App() {
     }
   };
 
-  const handleViewReviews = async (employeeId: string) => {
-    const client = employees.find(emp => emp.id === employeeId);
-    if (!client) return;
-
-    try {
-      // Mock reviews for now - in real app, this would come from the database
-      const mockReviews: ClientReview[] = [
-        {
-          id: '1',
-          clientId: employeeId,
-          rating: 5,
-          reviewText: 'Excellent service and communication. Very professional and delivered on time.',
-          reviewDate: new Date('2024-01-15'),
-          serviceType: 'project'
-        },
-        {
-          id: '2',
-          clientId: employeeId,
-          rating: 4,
-          reviewText: 'Good work quality, would recommend.',
-          reviewDate: new Date('2024-02-20'),
-          serviceType: 'consultation'
-        }
-      ];
-      
-      setSelectedClient(client);
-      setClientHistory(prev => ({ ...prev, reviews: mockReviews }));
-      setShowReviewModal(true);
-    } catch (error) {
-      console.error('Failed to load client reviews:', error);
-    }
-  };
-
-  const handleAddReview = async (clientId: string, reviewData: Omit<ClientReview, 'id' | 'clientId'>): Promise<void> => {
-    try {
-      // In real app, this would save to database
-      const newReview: ClientReview = {
-        id: Date.now().toString(),
-        clientId,
-        ...reviewData,
-      };
-      
-      setClientHistory(prev => ({
-        ...prev,
-        reviews: [newReview, ...prev.reviews]
-      }));
-    } catch (error) {
-      console.error('Failed to add review:', error);
-      throw error;
-    }
-  };
   const handleScheduleAppointment = async (employeeId: string) => {
     const client = employees.find(emp => emp.id === employeeId);
     if (!client) return;
@@ -313,7 +260,6 @@ function App() {
                   onOpenWhatsApp={handleOpenWhatsApp}
                   onViewHistory={handleViewHistory}
                   onScheduleAppointment={handleScheduleAppointment}
-                  onViewReviews={handleViewReviews}
                 />
               ))}
             </div>
@@ -425,16 +371,6 @@ function App() {
             workHistory={clientHistory.workHistory}
             appointments={clientHistory.appointments}
             feedback={clientHistory.feedback}
-          />
-        )}
-
-        {/* Client Reviews Modal */}
-        {showReviewModal && selectedClient && (
-          <ClientReviewModal
-            client={selectedClient}
-            onClose={() => setShowReviewModal(false)}
-            onAddReview={handleAddReview}
-            reviews={clientHistory.reviews}
           />
         )}
 
