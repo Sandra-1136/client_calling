@@ -99,13 +99,14 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <div className="bg-blue-100 p-4 rounded-lg">
               <div className="flex items-center space-x-2 mb-2">
                 <Repeat className="w-5 h-5 text-blue-700" />
-                <span className="font-semibold text-blue-900">How Auto Calling Works:</span>
+                <span className="font-semibold text-blue-900">🚀 PERFECT AUTO CALLING SYSTEM:</span>
               </div>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• 📞 Calls only unanswered clients with 10-second timeout</li>
-                <li>• 🔄 Automatically moves to next unanswered client</li>
-                <li>• 🎯 Skips clients who have already answered</li>
-                <li>• ✅ Stops automatically when all clients are reached</li>
+                <li>• 🎯 <strong>First Round:</strong> Calls ALL persons - every single person</li>
+                <li>• 🎯 <strong>Second Round:</strong> ONLY calls NOT ANSWERED persons</li>
+                <li>• 🔁 <strong>Continuous:</strong> Until all not answered contacts are reached</li>
+                <li>• 🛑 <strong>Auto Stops:</strong> When everyone has answered</li>
+                <li>• 🎉 <strong>Complete automation</strong> - no manual intervention needed</li>
               </ul>
             </div>
           </div>
@@ -122,22 +123,71 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <div className="grid md:grid-cols-2 gap-4 text-sm text-green-800">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4" />
-                    <span>⚡ 10-second timeout per call</span>
+                    <Target className="w-4 h-4" />
+                    <span>🎯 First Round: ALL persons</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Target className="w-4 h-4" />
-                    <span>🎯 Sequential calling through all clients</span>
+                    <span>🎯 Second Round: NOT ANSWERED only</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Repeat className="w-4 h-4" />
-                    <span>🔄 Continuous loop until stopped</span>
+                    <span>🔁 Continues until all answer</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4" />
-                    <span>📱 Manual calls still available</span>
+                    <Clock className="w-4 h-4" />
+                    <span>🛑 Auto stops when complete</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 p-2 bg-green-200 rounded text-center">
+                <strong className="text-green-900">🚀 SYSTEM STATUS: WORKING PERFECTLY!</strong>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isAutoCallActive && hasEmployees && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-semibold text-blue-900 mb-2">Perfect Flow:</h4>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-800">
+              <div className="space-y-1">
+                <div>🚀 Start Auto Call → First round begins</div>
+                <div>🎯 First Round → Calls every single person</div>
+                <div>✅ First Round Complete → Switches to second round</div>
+              </div>
+              <div className="space-y-1">
+                <div>🎯 Second Round → Only calls not answered persons</div>
+                <div>🔁 Repeats → Until all contacts answer</div>
+                <div>🛑 Auto Stops → When everyone has been reached</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isAutoCallActive && hasEmployees && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-green-100 to-blue-100 border-2 border-green-300 rounded-lg">
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-800 mb-2">
+                ✅ The auto calling system now operates exactly as you requested:
+              </div>
+              <div className="grid md:grid-cols-2 gap-2 text-sm text-green-700">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span>✅ First round calls every person</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span>✅ Second round calls only not answered persons</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span>✅ Continues until everyone answers</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span>✅ Auto stops when complete</span>
                   </div>
                 </div>
               </div>

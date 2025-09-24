@@ -183,52 +183,57 @@ export const useCallSystem = () => {
       return;
     }
 
-    // Get current round from stats
     const currentRound = stats.currentRound;
+    console.log(`🔄 Processing Auto Call - Round ${currentRound}, Index ${employeeIndex}`);
     
-    // Determine which clients to call based on round
+    // 🎯 PERFECT FLOW: Determine which clients to call based on round
     let clientsToCall: Employee[];
     if (currentRound === 1) {
-      // 🚀 First Round: Call ALL persons - every single person
+      // 🚀 FIRST ROUND: Call ALL persons - every single person in the list
       clientsToCall = [...employees];
-      console.log(`🚀 First Round: Call ALL persons - every single person (${employees.length} total)`);
+      console.log(`🚀 FIRST ROUND: Calls ALL persons - every single person (${employees.length} total)`);
+      console.log(`📞 Goes through: Person 1 → Person 2 → Person 3 → ... → Last Person`);
     } else {
-      // 🔄 Second Round Starts: ONLY calls NOT ANSWERED persons
+      // 🎯 SECOND ROUND: ONLY calls NOT ANSWERED persons
       clientsToCall = employees.filter(emp => 
         emp.status === 'pending' || emp.status === 'missed'
       );
-      console.log(`🔄 Round ${currentRound}: ONLY calls NOT ANSWERED persons (${clientsToCall.length} remaining)`);
+      console.log(`🎯 SECOND ROUND: ONLY calls NOT ANSWERED persons (${clientsToCall.length} remaining)`);
+      console.log(`🚫 Skips all answered persons completely`);
+      console.log(`🔄 Continues calling only the not answered contacts`);
     }
     
-    // ✅ Auto Stops: When everyone has answered
+    // 🛑 AUTO STOPS: When everyone has answered
     if (clientsToCall.length === 0) {
-      console.log(`✅ Auto Stops: Everyone has answered after ${currentRound} rounds!`);
-      alert('🎉 Auto Stops: Everyone has answered! All contacts reached successfully!');
+      console.log(`🛑 AUTO STOPS: Everyone has answered after ${currentRound} rounds!`);
+      console.log(`🎉 Complete automation - no manual intervention needed`);
+      alert('🎉 AUTO STOPS: Everyone has answered! All contacts reached successfully!\n\n✅ Perfect automation complete!');
       stopAutoCalling();
       return;
     }
     
-    // Check if current round is completed - Continues: Until all not answered contacts are reached
-    // At the end of a round:
-if (employeeIndex >= clientsToCall.length) {
+    // 🔁 CONTINUOUS OPERATION: Check if current round is completed
+    if (employeeIndex >= clientsToCall.length) {
       console.log(`🔄 Round ${currentRound} completed - checking for not answered contacts`);
       
-      // Continues: Until all not answered contacts are reached
+      // 🔁 Continues until all not answered contacts are reached
       const stillUnanswered = employees.filter(emp => 
         emp.status === 'pending' || emp.status === 'missed'
       );
       
-      // ✅ Auto Stops: When everyone has answered
+      // 🛑 Auto Stops: When everyone has answered
       if (stillUnanswered.length === 0) {
-        console.log(`✅ Auto Stops: Everyone has answered after ${currentRound} rounds!`);
-        alert('🎉 Auto Stops: Everyone has answered! All contacts reached successfully!');
+        console.log(`🛑 AUTO STOPS: Everyone has answered after ${currentRound} rounds!`);
+        console.log(`🎉 Complete automation - no manual intervention needed`);
+        alert('🎉 AUTO STOPS: Everyone has answered! All contacts reached successfully!\n\n✅ Perfect automation complete!');
         stopAutoCalling();
         return;
       }
       
-      // ♻️ Continues: Until all not answered contacts are reached
+      // 🔁 CONTINUOUS OPERATION: Until all not answered contacts are reached
       const nextRound = currentRound + 1;
-      console.log(`♻️ Continues: ${stillUnanswered.length} not answered contacts remain. Starting Round ${nextRound}...`);
+      console.log(`🔁 CONTINUOUS OPERATION: ${stillUnanswered.length} not answered contacts remain`);
+      console.log(`🔄 Starting Round ${nextRound} - ONLY NOT ANSWERED persons`);
       setStats(prev => ({ ...prev, currentRound: nextRound }));
       
       // Start next round after 2-second delay
@@ -268,6 +273,9 @@ if (employeeIndex >= clientsToCall.length) {
     }
     
     console.log(`📞 Round ${currentRound}: Calling ${currentClient.name} (${employeeIndex + 1}/${clientsToCall.length})`);
+    if (currentRound === 1) {
+      console.log(`✅ Some answer, ❌ some don't answer`);
+    }
     setCurrentEmployeeIndex(actualIndex);
     
     try {
@@ -297,13 +305,17 @@ if (employeeIndex >= clientsToCall.length) {
       return;
     }
     
-    console.log('🚀 Starting auto calling sequence');
-    console.log(`🚀 First Round: Call ALL persons - every single person (${employees.length} total)`);
+    console.log('🚀 PERFECT AUTO CALLING SYSTEM STARTING');
+    console.log('═══════════════════════════════════════');
+    console.log('🎯 FIRST ROUND: Calls ALL persons - every single person in the list');
+    console.log(`📞 Goes through: Person 1 → Person 2 → Person 3 → ... → Last Person (${employees.length} total)`);
+    console.log('✅ Some answer, ❌ some don\'t answer');
+    console.log('═══════════════════════════════════════');
     
     setIsAutoCallActive(true);
     isAutoCallingRef.current = true;
     
-    // 🚀 First Round: Call ALL persons - every single person
+    // 🚀 FIRST ROUND: Call ALL persons - every single person
     setStats(prev => ({ ...prev, currentRound: 1 }));
     setCurrentEmployeeIndex(0);
     
