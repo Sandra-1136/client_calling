@@ -14,11 +14,11 @@ const isSupabaseConfigured = () => {
 };
 
 // Test connection function
-const testSupabaseConnection = async () => {
-  if (!supabase) return false;
+const testSupabaseConnection = async (client: any) => {
+  if (!client) return false;
   
   try {
-    const { data, error } = await supabase.from('clients').select('count').limit(1);
+    const { data, error } = await client.from('clients').select('count').limit(1);
     return !error;
   } catch (error) {
     console.error('Supabase connection test failed:', error);
@@ -49,7 +49,7 @@ const createSupabaseClient = () => {
     });
     
     // Test connection on creation
-    testSupabaseConnection().then(connected => {
+    testSupabaseConnection(client).then(connected => {
       if (connected) {
         console.log('✅ Supabase connection successful');
       } else {
