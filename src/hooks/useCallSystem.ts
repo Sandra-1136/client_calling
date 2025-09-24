@@ -177,45 +177,45 @@ export const useCallSystem = () => {
     // Determine which clients to call based on round
     let clientsToCall: Employee[];
     if (currentRound === 1) {
-      // 🚀 Round 1: Call ALL clients (every single one)
+      // 🚀 First Round: Call ALL persons - every single person
       clientsToCall = [...employees];
-      console.log(`🚀 Round 1 - Calling ALL clients (${employees.length} total)`);
+      console.log(`🚀 First Round: Call ALL persons - every single person (${employees.length} total)`);
     } else {
-      // 🔄 Round 2+: Only call unanswered clients (pending/missed)
+      // 🔄 Second Round Starts: ONLY calls NOT ANSWERED persons
       clientsToCall = employees.filter(emp => 
         emp.status === 'pending' || emp.status === 'missed'
       );
-      console.log(`🔄 Round ${currentRound} - Calling only unanswered clients (${clientsToCall.length} remaining)`);
+      console.log(`🔄 Round ${currentRound}: ONLY calls NOT ANSWERED persons (${clientsToCall.length} remaining)`);
     }
     
-    // ✅ If no clients to call, stop auto calling
+    // ✅ Auto Stops: When everyone has answered
     if (clientsToCall.length === 0) {
-      console.log(`✅ All clients have been successfully reached after ${currentRound} rounds!`);
-      alert('🎉 All clients have been successfully reached!');
+      console.log(`✅ Auto Stops: Everyone has answered after ${currentRound} rounds!`);
+      alert('🎉 Auto Stops: Everyone has answered! All contacts reached successfully!');
       stopAutoCalling();
       return;
     }
     
-    // Check if current round is completed
+    // Check if current round is completed - Continues: Until all not answered contacts are reached
     if (employeeIndex >= clientsToCall.length) {
-      console.log(`🔄 Round ${currentRound} completed`);
+      console.log(`🔄 Round ${currentRound} completed - checking for not answered contacts`);
       
-      // Check if there are still unanswered clients for next round
+      // Continues: Until all not answered contacts are reached
       const stillUnanswered = employees.filter(emp => 
         emp.status === 'pending' || emp.status === 'missed'
       );
       
-      // ✅ Auto Stop: If all clients answered, stop the system
+      // ✅ Auto Stops: When everyone has answered
       if (stillUnanswered.length === 0) {
-        console.log(`✅ All clients successfully reached after ${currentRound} rounds!`);
-        alert('🎉 All clients have been successfully reached!');
+        console.log(`✅ Auto Stops: Everyone has answered after ${currentRound} rounds!`);
+        alert('🎉 Auto Stops: Everyone has answered! All contacts reached successfully!');
         stopAutoCalling();
         return;
       }
       
-      // ♻️ Start next round (3, 4, 5... if needed)
+      // ♻️ Continues: Until all not answered contacts are reached
       const nextRound = currentRound + 1;
-      console.log(`♻️ ${stillUnanswered.length} clients still unanswered. Starting Round ${nextRound}...`);
+      console.log(`♻️ Continues: ${stillUnanswered.length} not answered contacts remain. Starting Round ${nextRound}...`);
       setStats(prev => ({ ...prev, currentRound: nextRound }));
       
       // Start next round after 2-second delay
@@ -283,23 +283,13 @@ export const useCallSystem = () => {
       return;
     }
     
-    // Check if all clients are already answered
-    const unansweredClients = employees.filter(emp => 
-      emp.status === 'pending' || emp.status === 'missed'
-    );
-    
-    if (unansweredClients.length === 0) {
-      alert('✅ All clients have already been reached!');
-      return;
-    }
-    
     console.log('🚀 Starting auto calling sequence');
-    console.log(`🚀 Round 1: Will call ALL ${employees.length} clients (including previously answered ones)`);
+    console.log(`🚀 First Round: Call ALL persons - every single person (${employees.length} total)`);
     
     setIsAutoCallActive(true);
     isAutoCallingRef.current = true;
     
-    // 🚀 Start with Round 1 - calls ALL clients
+    // 🚀 First Round: Call ALL persons - every single person
     setStats(prev => ({ ...prev, currentRound: 1 }));
     setCurrentEmployeeIndex(0);
     
