@@ -11,6 +11,7 @@ interface AppointmentSchedulerProps {
   markedDates?: Date[];
   onMarkDate?: (date: Date) => void;
   onUnmarkDate?: (date: Date) => void;
+  employees?: any[];
 }
 
 export const AppointmentScheduler: React.FC<AppointmentSchedulerProps> = ({
@@ -21,6 +22,7 @@ export const AppointmentScheduler: React.FC<AppointmentSchedulerProps> = ({
   markedDates = [],
   onMarkDate,
   onUnmarkDate,
+  employees = [],
 }) => {
   const [formData, setFormData] = useState({
     appointmentDate: '',
@@ -113,6 +115,8 @@ export const AppointmentScheduler: React.FC<AppointmentSchedulerProps> = ({
                 markedDates={markedDates}
                 onMarkDate={onMarkDate}
                 onUnmarkDate={onUnmarkDate}
+                employees={employees}
+                employees={[]}
               />
             </div>
           )}

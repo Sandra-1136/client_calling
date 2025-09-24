@@ -11,6 +11,7 @@ interface CalendarViewProps {
   markedDates?: Date[];
   onMarkDate?: (date: Date) => void;
   onUnmarkDate?: (date: Date) => void;
+  employees?: any[];
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
@@ -22,12 +23,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   markedDates = [],
   onMarkDate,
   onUnmarkDate,
+  employees = [],
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedDateSchedules, setSelectedDateSchedules] = useState<Appointment[]>([]);
+  const [reminders, setReminders] = useState<Appointment[]>([]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Check for reminders (appointments tomorrow)
+  useEffect(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const tomorrowEnd = new Date(tomorrow);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+    
+    const tomorrowAppointments = appointments.filter(apt => {
+      const aptDate = new Date(apt.appointmentDate);
+      return aptDate >= tomorrow && aptDate <= tomorrowEnd && apt.status === 'scheduled';
+    });
+    
+    setReminders(tomorrowAppointments);
+  }, [appointments]);
   // Simple functions without memoization for instant response
   const getAppointmentsForDate = (date: Date) => {
     const dateStr = date.toDateString();
@@ -46,6 +67,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return markedDates.some(markedDate => markedDate.toDateString() === date.toDateString());
   };
 
+  const getClientName = (clientId: string) => {
+    const client = employees.find(emp => emp.id === clientId);
+    return client ? client.name : 'Unknown Client';
+  };
   // Generate calendar days
   const getCalendarDays = () => {
     const year = currentDate.getFullYear();
@@ -97,7 +122,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Handle date selection - instant response
   const handleDateSelect = (date: Date) => {
-    // Instant response - no validation delays
+    // Check if date is marked and has schedules
+    if (isDateMarked(date)) {
+      const dateSchedules = getAppointmentsForDate(date);
+      if (dateSchedules.length > 0) {
+        setSelectedDateSchedules(dateSchedules);
+        setShowScheduleModal(true);
+        return;
+      }
+    }
+    
+    // Regular date selection
     onDateSelect(date);
   };
 
@@ -109,7 +144,33 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const calendarDays = getCalendarDays();
 
   return (
-    <div className="bg-white rounded-xl shadow-lg">
+    <>
+      <div className="bg-white rounded-xl shadow-lg">
+        {/* Reminders Section */}
+        {reminders.length > 0 && (
+          <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+            <div className="flex items-center space-x-2 mb-3">
+              <Clock className="w-5 h-5 text-yellow-600" />
+              <h3 className="font-semibold text-yellow-800">Tomorrow's Reminders</h3>
+            </div>
+            <div className="space-y-2">
+              {reminders.map((reminder, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-yellow-100 rounded-lg">
+                  <div>
+                    <span className="font-medium text-yellow-800">{getClientName(reminder.clientId)}</span>
+                    <span className="text-sm text-yellow-600 ml-2">
+                      {new Date(reminder.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">
+                    {reminder.appointmentType}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       {showHeader && (
         <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
@@ -183,7 +244,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <div className="w-4 h-4 bg-purple-100 border-2 border-purple-400 rounded flex items-center justify-center">
               <Bookmark className="w-2 h-2 text-purple-600" />
             </div>
-            <span>Marked</span>
+            <span>Marked (Click to view schedules)</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-blue-100 border-2 border-blue-400 rounded"></div>
@@ -197,7 +258,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <div className="flex items-center space-x-2 text-purple-800">
               <Bookmark className="w-4 h-4" />
               <span className="text-sm font-medium">
-                Right-click on any date to mark/unmark it for your schedule
+                Right-click to mark/unmark dates. Click marked dates to view schedules.
               </span>
             </div>
           </div>
@@ -278,7 +339,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   cursor-pointer
                   ${isToday ? 'font-bold' : ''}
                 `}
-                title={isMarked ? 'Right-click to unmark' : 'Right-click to mark'}
+                title={isMarked ? (dayAppointments.length > 0 ? 'Click to view schedules, Right-click to unmark' : 'Right-click to unmark') : 'Right-click to mark'}
               >
                 <span className="text-sm">{date.getDate()}</span>
                 
@@ -344,6 +405,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         <User className="w-3 h-3" />
                         <span>{new Date(apt.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         <span>-</span>
+                        <span>{getClientName(apt.clientId)}</span>
+                        <span>-</span>
                         <span>{apt.appointmentType}</span>
                       </div>
                     ))}
@@ -367,6 +430,80 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
         )}
       </div>
+      </div>
+
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-purple-100 p-2 rounded-full">
+                    <Calendar className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Daily Schedules</h2>
+                    <p className="text-gray-600">Appointments for this marked date</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowScheduleModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-4">
+                {selectedDateSchedules.map((schedule, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                          <User className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{getClientName(schedule.clientId)}</h3>
+                          <p className="text-sm text-gray-600">{schedule.appointmentType}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-blue-800">
+                          {new Date(schedule.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          schedule.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                          schedule.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          schedule.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {schedule.status}
+                        </span>
+                      </div>
+                    </div>
+                    {schedule.notes && (
+                      <div className="mt-3 p-3 bg-white rounded-lg">
+                        <p className="text-sm text-gray-700">{schedule.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {selectedDateSchedules.length === 0 && (
+                <div className="text-center py-8">
+                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No schedules found for this date</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
     </div>
   );
 };

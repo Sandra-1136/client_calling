@@ -456,6 +456,7 @@ function App() {
             markedDates={markedDates}
             onMarkDate={handleMarkDate}
             onUnmarkDate={handleUnmarkDate}
+            employees={employees}
           />
         )}
 
@@ -467,6 +468,7 @@ function App() {
             markedDates={markedDates}
             onMarkDate={handleMarkDate}
             onUnmarkDate={handleUnmarkDate}
+            employees={employees}
           />
         )}
         </div>
