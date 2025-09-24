@@ -428,9 +428,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               )}
             </div>
           </div>
-        )}
-      </div>
-      </div>
 
       {/* Schedule Modal */}
       {showScheduleModal && (
