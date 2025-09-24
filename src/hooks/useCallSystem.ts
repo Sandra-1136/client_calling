@@ -186,6 +186,19 @@ export const useCallSystem = () => {
     const currentRound = stats.currentRound;
     console.log(`🔄 Processing Auto Call - Round ${currentRound}, Index ${employeeIndex}`);
     
+    // 🛑 FIRST CHECK: Auto stops when everyone has answered
+    const notAnsweredContacts = employees.filter(emp => 
+      emp.status === 'pending' || emp.status === 'missed'
+    );
+    
+    if (notAnsweredContacts.length === 0) {
+      console.log(`🛑 AUTO STOPS: Everyone has answered after ${currentRound} rounds!`);
+      console.log(`🎉 Complete automation - no manual intervention needed`);
+      alert('🎉 AUTO STOPS: Everyone has answered! All contacts reached successfully!\n\n✅ Perfect automation complete!');
+      stopAutoCalling();
+      return;
+    }
+    
     // 🎯 PERFECT FLOW: Determine which clients to call based on round
     let clientsToCall: Employee[];
     if (currentRound === 1) {
@@ -194,34 +207,28 @@ export const useCallSystem = () => {
       console.log(`🚀 FIRST ROUND: Calls ALL persons - every single person (${employees.length} total)`);
       console.log(`📞 Goes through: Person 1 → Person 2 → Person 3 → ... → Last Person`);
     } else {
-      // 🎯 SECOND ROUND: ONLY calls NOT ANSWERED persons
-      clientsToCall = employees.filter(emp => 
-        emp.status === 'pending' || emp.status === 'missed'
-      );
-      console.log(`🎯 SECOND ROUND: ONLY calls NOT ANSWERED persons (${clientsToCall.length} remaining)`);
+      // 🎯 SECOND ROUND AND BEYOND: ONLY calls NOT ANSWERED persons
+      clientsToCall = notAnsweredContacts;
+      console.log(`🎯 ROUND ${currentRound}: ONLY calls NOT ANSWERED persons (${clientsToCall.length} remaining)`);
       console.log(`🚫 Skips all answered persons completely`);
       console.log(`🔄 Continues calling only the not answered contacts`);
-    }
-    
-    // 🛑 AUTO STOPS: When everyone has answered
-    if (clientsToCall.length === 0) {
-      console.log(`🛑 AUTO STOPS: Everyone has answered after ${currentRound} rounds!`);
-      console.log(`🎉 Complete automation - no manual intervention needed`);
-      alert('🎉 AUTO STOPS: Everyone has answered! All contacts reached successfully!\n\n✅ Perfect automation complete!');
-      stopAutoCalling();
-      return;
+      
+      // Show which contacts are being skipped
+      const answeredContacts = employees.filter(emp => emp.status === 'answered');
+      if (answeredContacts.length > 0) {
+        console.log(`✅ SKIPPING ${answeredContacts.length} answered contacts:`, answeredContacts.map(emp => emp.name));
+      }
     }
     
     // 🔁 CONTINUOUS OPERATION: Check if current round is completed
     if (employeeIndex >= clientsToCall.length) {
       console.log(`🔄 Round ${currentRound} completed - checking for not answered contacts`);
       
-      // 🔁 Continues until all not answered contacts are reached
+      // 🛑 DOUBLE CHECK: Auto Stops when everyone has answered
       const stillUnanswered = employees.filter(emp => 
         emp.status === 'pending' || emp.status === 'missed'
       );
       
-      // 🛑 Auto Stops: When everyone has answered
       if (stillUnanswered.length === 0) {
         console.log(`🛑 AUTO STOPS: Everyone has answered after ${currentRound} rounds!`);
         console.log(`🎉 Complete automation - no manual intervention needed`);
@@ -233,7 +240,7 @@ export const useCallSystem = () => {
       // 🔁 CONTINUOUS OPERATION: Until all not answered contacts are reached
       const nextRound = currentRound + 1;
       console.log(`🔁 CONTINUOUS OPERATION: ${stillUnanswered.length} not answered contacts remain`);
-      console.log(`🔄 Starting Round ${nextRound} - ONLY NOT ANSWERED persons`);
+      console.log(`🔄 Starting Round ${nextRound} - ONLY NOT ANSWERED persons:`, stillUnanswered.map(emp => emp.name));
       setStats(prev => ({ ...prev, currentRound: nextRound }));
       
       // Start next round after 2-second delay
@@ -275,6 +282,8 @@ export const useCallSystem = () => {
     console.log(`📞 Round ${currentRound}: Calling ${currentClient.name} (${employeeIndex + 1}/${clientsToCall.length})`);
     if (currentRound === 1) {
       console.log(`✅ Some answer, ❌ some don't answer`);
+    } else {
+      console.log(`🎯 ONLY calling NOT ANSWERED - skipping all answered contacts`);
     }
     setCurrentEmployeeIndex(actualIndex);
     
