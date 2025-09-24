@@ -177,18 +177,18 @@ export const useCallSystem = () => {
     // Determine which clients to call based on round
     let clientsToCall: Employee[];
     if (currentRound === 1) {
-      // Round 1: Call ALL clients
+      // 🚀 Round 1: Call ALL clients (every single one)
       clientsToCall = [...employees];
-      console.log(`🔄 Round 1 - Calling ALL clients (${employees.length} total)`);
+      console.log(`🚀 Round 1 - Calling ALL clients (${employees.length} total)`);
     } else {
-      // Round 2+: Call only unanswered clients (pending/missed)
+      // 🔄 Round 2+: Only call unanswered clients (pending/missed)
       clientsToCall = employees.filter(emp => 
         emp.status === 'pending' || emp.status === 'missed'
       );
       console.log(`🔄 Round ${currentRound} - Calling only unanswered clients (${clientsToCall.length} remaining)`);
     }
     
-    // If no clients to call, stop auto calling
+    // ✅ If no clients to call, stop auto calling
     if (clientsToCall.length === 0) {
       console.log(`✅ All clients have been successfully reached after ${currentRound} rounds!`);
       alert('🎉 All clients have been successfully reached!');
@@ -205,6 +205,7 @@ export const useCallSystem = () => {
         emp.status === 'pending' || emp.status === 'missed'
       );
       
+      // ✅ Auto Stop: If all clients answered, stop the system
       if (stillUnanswered.length === 0) {
         console.log(`✅ All clients successfully reached after ${currentRound} rounds!`);
         alert('🎉 All clients have been successfully reached!');
@@ -212,9 +213,9 @@ export const useCallSystem = () => {
         return;
       }
       
-      // Start next round
+      // ♻️ Start next round (3, 4, 5... if needed)
       const nextRound = currentRound + 1;
-      console.log(`📊 ${stillUnanswered.length} clients still unanswered. Starting Round ${nextRound}...`);
+      console.log(`♻️ ${stillUnanswered.length} clients still unanswered. Starting Round ${nextRound}...`);
       setStats(prev => ({ ...prev, currentRound: nextRound }));
       
       // Start next round after 2-second delay
@@ -230,10 +231,27 @@ export const useCallSystem = () => {
     const currentClient = clientsToCall[employeeIndex];
     if (!currentClient) {
       console.log('❌ No client found at index', employeeIndex);
+      // Move to next client if current one doesn't exist
+      autoCallTimeoutRef.current = setTimeout(() => {
+        if (isAutoCallingRef.current) {
+          processAutoCall(employeeIndex + 1);
+        }
+      }, 100);
       return;
     }
     
+    // Find the actual index in the full employees array
     const actualIndex = employees.findIndex(emp => emp.id === currentClient.id);
+    if (actualIndex === -1) {
+      console.log('❌ Client not found in employees array');
+      // Move to next client
+      autoCallTimeoutRef.current = setTimeout(() => {
+        if (isAutoCallingRef.current) {
+          processAutoCall(employeeIndex + 1);
+        }
+      }, 100);
+      return;
+    }
     
     console.log(`📞 Round ${currentRound}: Calling ${currentClient.name} (${employeeIndex + 1}/${clientsToCall.length})`);
     setCurrentEmployeeIndex(actualIndex);
@@ -265,13 +283,23 @@ export const useCallSystem = () => {
       return;
     }
     
+    // Check if all clients are already answered
+    const unansweredClients = employees.filter(emp => 
+      emp.status === 'pending' || emp.status === 'missed'
+    );
+    
+    if (unansweredClients.length === 0) {
+      alert('✅ All clients have already been reached!');
+      return;
+    }
+    
     console.log('🚀 Starting auto calling sequence');
-    console.log(`📊 Starting Round 1: Will call ALL ${employees.length} clients`);
+    console.log(`🚀 Round 1: Will call ALL ${employees.length} clients (including previously answered ones)`);
     
     setIsAutoCallActive(true);
     isAutoCallingRef.current = true;
     
-    // Start with Round 1
+    // 🚀 Start with Round 1 - calls ALL clients
     setStats(prev => ({ ...prev, currentRound: 1 }));
     setCurrentEmployeeIndex(0);
     
