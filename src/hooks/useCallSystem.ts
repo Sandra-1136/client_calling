@@ -292,51 +292,6 @@ export const useCallSystem = () => {
       }
     }, 500);
   }, [employees, isAutoCallActive, processAutoCall]);
-    }
-    
-    // Continue to next unanswered client after a short delay
-    if (isAutoCallingRef.current) {
-      const nextIndex = employeeIndex + 1;
-      autoCallTimeoutRef.current = setTimeout(() => {
-        if (isAutoCallingRef.current) {
-          processAutoCall(nextIndex);
-        }
-      }, 1500);
-    }
-  }
-  )
-
-  const startAutoCalling = useCallback(() => {
-    if (isAutoCallActive || employees.length === 0) {
-      console.log('❌ Cannot start auto calling - already active or no employees');
-      return;
-    }
-    
-    // Check if there are any unanswered clients
-    const unansweredClients = employees.filter(emp => 
-      emp.status === 'pending' || emp.status === 'missed'
-    );
-    
-    if (unansweredClients.length === 0) {
-      alert('🎉 All clients have already been reached!');
-      return;
-    }
-    
-    console.log('🚀 Starting auto calling sequence');
-    console.log(`📊 Total contacts: ${employees.length}, Unanswered: ${unansweredClients.length}`);
-    setIsAutoCallActive(true);
-    isAutoCallingRef.current = true;
-    
-    // Start with the first employee
-    setCurrentEmployeeIndex(0);
-    
-    // Start calling from index 0 after a short delay
-    setTimeout(() => {
-      if (isAutoCallingRef.current) {
-        processAutoCall(0);
-      }
-    }, 500);
-  }, [employees, isAutoCallActive, processAutoCall]);
 
   const resetSystem = async () => {
     console.log('🔄 Resetting system');
