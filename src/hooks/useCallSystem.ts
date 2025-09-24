@@ -171,34 +171,127 @@ export const useCallSystem = () => {
       return;
     }
 
-    // Get only unanswered clients (pending or missed)
-    const unansweredClients = employees.filter(emp => 
-      emp.status === 'pending' || emp.status === 'missed'
-    );
+    console.log(`🔄 Processing auto call - Index: ${employeeIndex}, Round: ${stats.currentRound}`);
 
-    // If no unanswered clients, stop auto calling
-    if (unansweredClients.length === 0) {
-      console.log('✅ All clients have been reached! Auto calling completed.');
-      alert('🎉 All clients have been successfully reached!');
-      stopAutoCalling();
+    // Round 1: Call all clients sequentially
+    if (stats.currentRound === 1) {
+      if (employeeIndex >= employees.length) {
+        // Round 1 complete, check if we need Round 2
+        const missedClients = employees.filter(emp => emp.status === 'missed');
+        if (missedClients.length === 0) {
+          console.log('✅ All clients answered in Round 1! Auto calling completed.');
+          alert('🎉 All clients have been successfully reached!');
+          stopAutoCalling();
+          return;
+        } else {
+          console.log(`🔄 Round 1 complete. Starting Round 2 for ${missedClients.length} missed clients.`);
+          setStats(prev => ({ ...prev, currentRound: 2 }));
+          // Start Round 2 with first missed client
+          setTimeout(() => {
+            if (isAutoCallingRef.current) {
+              processAutoCall(0);
+            }
+          }, 1500);
+          return;
+        }
+      }
+
+      const currentClient = employees[employeeIndex];
+      console.log(`📞 Round 1: Calling ${currentClient.name} (${employeeIndex + 1}/${employees.length})`);
+      setCurrentEmployeeIndex(employeeIndex);
+
+      try {
+        await callEmployee(currentClient.id);
+      } catch (error) {
+        console.error('Error calling contact:', error);
+      }
+
+      // Move to next client in Round 1
+      if (isAutoCallingRef.current) {
+        autoCallTimeoutRef.current = setTimeout(() => {
+          if (isAutoCallingRef.current) {
+            processAutoCall(employeeIndex + 1);
+          }
+        }, 1500);
+      }
+    }
+    // Round 2+: Only call missed clients
+    else {
+      const missedClients = employees.filter(emp => emp.status === 'missed');
+      
+      if (missedClients.length === 0) {
+        console.log('✅ All missed clients have been reached! Auto calling completed.');
+        alert('🎉 All clients have been successfully reached!');
+        stopAutoCalling();
+        return;
+      }
+
+      if (employeeIndex >= missedClients.length) {
+        // Check if any clients are still missed after this round
+        const stillMissed = employees.filter(emp => emp.status === 'missed');
+        if (stillMissed.length === 0) {
+          console.log('✅ All clients have been reached! Auto calling completed.');
+          alert('🎉 All clients have been successfully reached!');
+          stopAutoCalling();
+          return;
+        } else {
+          console.log(`🔄 Round ${stats.currentRound} complete. Starting Round ${stats.currentRound + 1} for ${stillMissed.length} missed clients.`);
+          setStats(prev => ({ ...prev, currentRound: prev.currentRound + 1 }));
+          // Start next round
+          setTimeout(() => {
+            if (isAutoCallingRef.current) {
+              processAutoCall(0);
+            }
+          }, 1500);
+          return;
+        }
+      }
+
+      const currentClient = missedClients[employeeIndex];
+      const actualIndex = employees.findIndex(emp => emp.id === currentClient.id);
+      
+      console.log(`📞 Round ${stats.currentRound}: Calling ${currentClient.name} (${employeeIndex + 1}/${missedClients.length})`);
+      setCurrentEmployeeIndex(actualIndex);
+
+      try {
+        await callEmployee(currentClient.id);
+      } catch (error) {
+        console.error('Error calling contact:', error);
+      }
+
+      // Move to next missed client
+      if (isAutoCallingRef.current) {
+        autoCallTimeoutRef.current = setTimeout(() => {
+          if (isAutoCallingRef.current) {
+            processAutoCall(employeeIndex + 1);
+          }
+        }, 1500);
+      }
+    }
+  }, [employees, callEmployee, stopAutoCalling, stats.currentRound]);
+
+  const startAutoCalling = useCallback(() => {
+    if (isAutoCallActive || employees.length === 0) {
+      console.log('❌ Cannot start auto calling - already active or no employees');
       return;
     }
-
-    // Get current client from unanswered list
-    const currentIndex = employeeIndex % unansweredClients.length;
-    const currentClient = unansweredClients[currentIndex];
     
-    // Find actual index in full employee list for UI display
-    const actualIndex = employees.findIndex(emp => emp.id === currentClient.id);
+    console.log('🚀 Starting auto calling sequence');
+    console.log(`📊 Total contacts: ${employees.length}`);
+    setIsAutoCallActive(true);
+    isAutoCallingRef.current = true;
+    setStats(prev => ({ ...prev, currentRound: 1 }));
     
-    console.log(`📞 Auto calling ${currentClient.name} (${currentIndex + 1}/${unansweredClients.length})`);
-    setCurrentEmployeeIndex(actualIndex);
+    // Start with the first employee in Round 1
+    setCurrentEmployeeIndex(0);
     
-    try {
-      const callResult = await callEmployee(currentClient.id);
-      console.log(`📞 Call result for ${currentClient.name}: ${callResult ? 'answered' : 'missed'}`);
-    } catch (error) {
-      console.error('Error calling contact:', error);
+    // Start calling from index 0 after a short delay
+    setTimeout(() => {
+      if (isAutoCallingRef.current) {
+        processAutoCall(0);
+      }
+    }, 500);
+  }, [employees, isAutoCallActive, processAutoCall]);
     }
     
     // Continue to next unanswered client after a short delay
