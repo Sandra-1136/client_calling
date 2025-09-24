@@ -158,34 +158,75 @@ export const useCallSystem = () => {
       return;
     }
 
-    // Get current employees and filter for unanswered only
     const currentEmployees = employees;
-    const unansweredEmployees = currentEmployees.filter(emp => 
-      emp.status === 'missed' || emp.status === 'pending'
-    );
-    
-    // If no unanswered employees, stop auto calling
-    if (unansweredEmployees.length === 0) {
-      console.log('✅ All clients have been reached! Auto calling completed.');
-      alert('🎉 All clients have been successfully reached!');
-      stopAutoCalling();
-      return;
+    let targetEmployees: Employee[] = [];
+    let currentEmployee: Employee | null = null;
+    let actualIndex = 0;
+
+    // First round: call all clients
+    if (stats.currentRound === 1) {
+      targetEmployees = currentEmployees;
+      const currentIndex = employeeIndex % targetEmployees.length;
+      currentEmployee = targetEmployees[currentIndex];
+      actualIndex = currentIndex;
+      
+      console.log(`🔄 Round 1 - calling client ${currentIndex + 1}/${targetEmployees.length}: ${currentEmployee?.name}`);
+      
+      // Check if we completed the first round
+      if (employeeIndex >= targetEmployees.length - 1) {
+        // Check if there are any missed clients for round 2
+        const missedClients = currentEmployees.filter(emp => emp.status === 'missed');
+        if (missedClients.length > 0) {
+          console.log(`🔄 Round 1 completed. Starting Round 2 with ${missedClients.length} missed clients.`);
+          setStats(prev => ({ ...prev, currentRound: 2 }));
+        } else {
+          console.log('✅ All clients answered in Round 1! Auto calling completed.');
+          alert('🎉 All clients have been successfully reached in the first round!');
+          stopAutoCalling();
+          return;
+        }
+      }
+    } 
+    // Second round and beyond: only call missed clients
+    else {
+      targetEmployees = currentEmployees.filter(emp => emp.status === 'missed');
+      
+      // If no missed clients, stop auto calling
+      if (targetEmployees.length === 0) {
+        console.log('✅ All missed clients have been reached! Auto calling completed.');
+        alert('🎉 All missed clients have been successfully reached!');
+        stopAutoCalling();
+        return;
+      }
+      
+      const currentIndex = employeeIndex % targetEmployees.length;
+      currentEmployee = targetEmployees[currentIndex];
+      actualIndex = currentEmployees.findIndex(emp => emp.id === currentEmployee?.id);
+      
+      console.log(`🔄 Round ${stats.currentRound} - calling missed client ${currentIndex + 1}/${targetEmployees.length}: ${currentEmployee?.name}`);
+      
+      // Check if we completed this round of missed clients
+      if (employeeIndex >= targetEmployees.length - 1) {
+        // Check if there are still missed clients for next round
+        const stillMissedClients = currentEmployees.filter(emp => emp.status === 'missed');
+        if (stillMissedClients.length > 0) {
+          console.log(`🔄 Round ${stats.currentRound} completed. Starting Round ${stats.currentRound + 1} with ${stillMissedClients.length} missed clients.`);
+          setStats(prev => ({ ...prev, currentRound: prev.currentRound + 1 }));
+        } else {
+          console.log('✅ All clients have been reached! Auto calling completed.');
+          alert('🎉 All clients have been successfully reached!');
+          stopAutoCalling();
+          return;
+        }
+      }
     }
-    
-    // Get the current unanswered employee
-    const currentIndex = employeeIndex % unansweredEmployees.length;
-    const currentEmployee = unansweredEmployees[currentIndex];
-    
+
     if (!currentEmployee) {
-      console.log('❌ No unanswered employee found');
+      console.log('❌ No employee found to call');
       stopAutoCalling();
       return;
     }
-    
-    // Find the actual index in the full employees array for UI display
-    const actualIndex = currentEmployees.findIndex(emp => emp.id === currentEmployee.id);
-    console.log(`🔄 Auto calling - Round ${stats.currentRound} - calling unanswered contact ${currentIndex + 1}/${unansweredEmployees.length}: ${currentEmployee.name}`);
-    
+
     setCurrentEmployeeIndex(actualIndex);
     
     try {
@@ -197,14 +238,7 @@ export const useCallSystem = () => {
     
     // Continue to next unanswered employee after a short delay
     if (isAutoCallingRef.current) {
-      const nextIndex = currentIndex + 1;
-      
-      // If we've cycled through all unanswered contacts, increment round
-      if (nextIndex >= unansweredEmployees.length) {
-        setStats(prev => ({ ...prev, currentRound: prev.currentRound + 1 }));
-        console.log(`🔄 Completed round ${stats.currentRound}, starting next round`);
-      }
-      
+      const nextIndex = employeeIndex + 1;
       autoCallTimeoutRef.current = setTimeout(() => {
         if (isAutoCallingRef.current) {
           processAutoCall(nextIndex);
@@ -219,28 +253,16 @@ export const useCallSystem = () => {
       return;
     }
     
-    const unansweredEmployees = employees.filter(emp => 
-      emp.status === 'missed' || emp.status === 'pending'
-    );
-    
-    if (unansweredEmployees.length === 0) {
-      console.log('✅ All contacts have already been answered!');
-      alert('🎉 All contacts have already been answered!');
-      return;
-    }
-    
-    console.log('🚀 Starting auto calling sequence');
-    console.log(`📊 Total contacts: ${employees.length}, Unanswered: ${unansweredEmployees.length}`);
+    console.log('🚀 Starting auto calling sequence - Round 1');
+    console.log(`📊 Total contacts: ${employees.length}`);
     setIsAutoCallActive(true);
     isAutoCallingRef.current = true;
+    setStats(prev => ({ ...prev, currentRound: 1 }));
     
-    // Find the first unanswered contact for UI display
-    const firstUnansweredIndex = employees.findIndex(emp => 
-      emp.status === 'missed' || emp.status === 'pending'
-    );
-    setCurrentEmployeeIndex(firstUnansweredIndex >= 0 ? firstUnansweredIndex : 0);
+    // Start with the first employee
+    setCurrentEmployeeIndex(0);
     
-    // Start calling from index 0 of unanswered list
+    // Start calling from index 0
     setTimeout(() => {
       if (isAutoCallingRef.current) {
         processAutoCall(0);
