@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, CheckCircle, XCircle, Clock, RotateCcw, Phone, Calendar, AlertTriangle, Filter } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, RotateCcw, Phone, Calendar, AlertTriangle, Filter, Play, Pause, SkipForward } from 'lucide-react';
 import { CallSystemStats } from '../types/Employee';
 
 interface CallStatusProps {
@@ -7,6 +7,11 @@ interface CallStatusProps {
   isAutoCallActive: boolean;
   currentEmployeeIndex: number;
   totalEmployees: number;
+  currentRound: number;
+  maxRounds: number;
+  onStartAutoCall: () => void;
+  onPauseAutoCall: () => void;
+  onNextRound: () => void;
   onFilterCompleted?: () => void;
   onFilterAnswered?: () => void;
   onFilterMissed?: () => void;
@@ -24,6 +29,11 @@ export const CallStatus: React.FC<CallStatusProps> = ({
   isAutoCallActive, 
   currentEmployeeIndex,
   totalEmployees,
+  currentRound,
+  maxRounds,
+  onStartAutoCall,
+  onPauseAutoCall,
+  onNextRound,
   onFilterCompleted,
   onFilterAnswered,
   onFilterMissed,
@@ -39,6 +49,16 @@ export const CallStatus: React.FC<CallStatusProps> = ({
     ? Math.round((stats.answered / stats.totalEmployees) * 100)
     : 0;
 
+  // Calculate round progress
+  const isFirstRound = currentRound === 1;
+  const isFinalRound = currentRound === maxRounds;
+  const allClientsCalled = currentEmployeeIndex >= totalEmployees - 1;
+  const allClientsAnswered = stats.answered + stats.completedWork === stats.totalEmployees;
+  
+  // Determine if we should stop auto-calling
+  const shouldStopCalling = isFinalRound && allClientsCalled;
+  const canProceedToNextRound = isAutoCallActive && allClientsCalled && !allClientsAnswered && !isFinalRound;
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
@@ -46,6 +66,83 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         <span>Client Call Dashboard</span>
       </h2>
       
+      {/* Round Control Panel */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6 border-2 border-blue-200">
+        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex items-center space-x-4">
+            <div className="bg-white rounded-lg px-4 py-2 border-2 border-blue-300">
+              <div className="text-sm text-gray-600">Current Round</div>
+              <div className="text-2xl font-bold text-blue-800 text-center">
+                {currentRound} / {maxRounds}
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg px-4 py-2 border-2 border-purple-300">
+              <div className="text-sm text-gray-600">Round Status</div>
+              <div className="text-lg font-bold text-purple-800">
+                {isFirstRound ? 'First Round - All Clients' : 
+                 isFinalRound ? 'Final Round - Unanswered Only' : 
+                 `Round ${currentRound} - Unanswered Only`}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            {!isAutoCallActive ? (
+              <button
+                onClick={onStartAutoCall}
+                disabled={shouldStopCalling}
+                className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                title={shouldStopCalling ? "All rounds completed" : "Start auto-calling"}
+              >
+                <Play className="w-4 h-4" />
+                <span>Start Calling</span>
+              </button>
+            ) : (
+              <button
+                onClick={onPauseAutoCall}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                title="Pause auto-calling"
+              >
+                <Pause className="w-4 h-4" />
+                <span>Pause</span>
+              </button>
+            )}
+            
+            {canProceedToNextRound && (
+              <button
+                onClick={onNextRound}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                title="Proceed to next round"
+              >
+                <SkipForward className="w-4 h-4" />
+                <span>Next Round</span>
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Round Progress */}
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              {isFirstRound ? 'Calling all clients' : `Calling ${stats.pending} unanswered clients`}
+            </span>
+            <span className="text-sm font-medium text-gray-700">
+              {currentEmployeeIndex + 1} / {isFirstRound ? totalEmployees : stats.pending}
+            </span>
+          </div>
+          <div className="bg-gray-200 rounded-full h-3">
+            <div 
+              className="bg-gradient-to-r from-blue-400 to-indigo-600 h-3 rounded-full transition-all duration-500"
+              style={{ 
+                width: `${totalEmployees > 0 ? Math.round(((currentEmployeeIndex + 1) / (isFirstRound ? totalEmployees : Math.max(stats.pending, 1))) * 100) : 0}%` 
+              }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
       {/* Real-time stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4 mb-6">
         <button 
@@ -223,7 +320,7 @@ export const CallStatus: React.FC<CallStatusProps> = ({
         </button>
       </div>
 
-      {/* Progress bar */}
+      {/* Overall Progress bar */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-700">Overall Progress</span>
@@ -256,6 +353,14 @@ export const CallStatus: React.FC<CallStatusProps> = ({
           <span>Missed</span>
         </div>
       </div>
+
+      {/* System Status Message */}
+      {shouldStopCalling && (
+        <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg text-center">
+          <CheckCircle className="w-5 h-5 inline-block mr-2" />
+          All rounds completed! Auto-calling stopped.
+        </div>
+      )}
     </div>
   );
 };
