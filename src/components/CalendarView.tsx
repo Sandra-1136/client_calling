@@ -11,7 +11,7 @@ interface CalendarViewProps {
   markedDates?: Date[];
   onMarkDate?: (date: Date) => void;
   onUnmarkDate?: (date: Date) => void;
-  employees?: any[];
+  employees: any[];
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
@@ -23,7 +23,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   markedDates = [],
   onMarkDate,
   onUnmarkDate,
-  employees = [],
+  employees,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -35,6 +35,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Check for reminders (appointments tomorrow)
   useEffect(() => {
+    if (!appointments || appointments.length === 0) {
+      setReminders([]);
+      return;
+    }
+    
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
@@ -48,6 +53,24 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     });
     
     setReminders(tomorrowAppointments);
+    
+    // Show alert for tomorrow's appointments
+    if (tomorrowAppointments.length > 0) {
+      const reminderText = tomorrowAppointments.map(apt => {
+        const clientName = getClientName(apt.clientId);
+        const time = new Date(apt.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `${clientName} at ${time} (${apt.appointmentType})`;
+      }).join('\n');
+      
+      // Show alert after a short delay to ensure component is mounted
+      const alertTimer = setTimeout(() => {
+        if (window.confirm(`🔔 REMINDER: You have ${tomorrowAppointments.length} appointment${tomorrowAppointments.length > 1 ? 's' : ''} tomorrow!\n\n${reminderText}\n\nClick OK to acknowledge.`)) {
+          console.log('Reminder acknowledged');
+        }
+      }, 1000);
+      
+      return () => clearTimeout(alertTimer);
+    }
   }, [appointments]);
   // Simple functions without memoization for instant response
   const getAppointmentsForDate = (date: Date) => {
@@ -68,8 +91,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   const getClientName = (clientId: string) => {
+    if (!employees || employees.length === 0) {
+      return 'Loading...';
+    }
     const client = employees.find(emp => emp.id === clientId);
-    return client ? client.name : 'Unknown Client';
+    return client ? client.name : 'Client Not Found';
   };
   // Generate calendar days
   const getCalendarDays = () => {

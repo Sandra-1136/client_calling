@@ -10,7 +10,7 @@ interface CalendarModalProps {
   markedDates?: Date[];
   onMarkDate?: (date: Date) => void;
   onUnmarkDate?: (date: Date) => void;
-  employees?: any[];
+  employees: any[];
 }
 
 export const CalendarModal: React.FC<CalendarModalProps> = ({
@@ -20,7 +20,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
   markedDates = [],
   onMarkDate,
   onUnmarkDate,
-  employees = [],
+  employees,
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 

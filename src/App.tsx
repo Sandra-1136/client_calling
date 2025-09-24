@@ -216,10 +216,17 @@ function App() {
     try {
       // Get all appointments for calendar view
       const allAppointments: Appointment[] = [];
+      const allEmployees: Employee[] = [...employees];
+      
       for (const employee of employees) {
-        const history = await getClientHistory(employee.id);
-        allAppointments.push(...history.appointments);
+        try {
+          const history = await getClientHistory(employee.id);
+          allAppointments.push(...history.appointments);
+        } catch (error) {
+          console.error(`Failed to load history for ${employee.name}:`, error);
+        }
       }
+      
       setClientHistory(prev => ({ ...prev, appointments: allAppointments }));
       setShowCalendarModal(true);
     } catch (error) {
