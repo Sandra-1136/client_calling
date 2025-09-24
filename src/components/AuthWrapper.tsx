@@ -69,12 +69,20 @@ export const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
           <p className="text-gray-600 mb-6">
             To use the Client Calling System, please connect to Supabase by clicking the "Connect to Supabase" button in the top right corner of the screen.
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
             <p className="text-blue-800 text-sm">
               <strong>Steps:</strong><br/>
               1. Click "Connect to Supabase\" button<br/>
               2. Set up your Supabase project<br/>
               3. Return here to start using the system
+            </p>
+          </div>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800 text-sm">
+              <strong>Connection Status:</strong><br/>
+              Frontend: ✅ Ready<br/>
+              Backend: ❌ Not Connected<br/>
+              Database: ❌ Waiting for Supabase
             </p>
           </div>
         </div>

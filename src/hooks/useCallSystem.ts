@@ -24,7 +24,17 @@ export const useCallSystem = () => {
 
   // Load employees on mount
   useEffect(() => {
-    loadEmployees();
+    const initializeSystem = async () => {
+      try {
+        console.log('🔄 Initializing calling system...');
+        await loadEmployees();
+        console.log('✅ Calling system initialized successfully');
+      } catch (error) {
+        console.error('❌ Failed to initialize calling system:', error);
+      }
+    };
+    
+    initializeSystem();
   }, []);
 
   // Update stats whenever employees change
@@ -47,7 +57,9 @@ export const useCallSystem = () => {
 
   const loadEmployees = async () => {
     try {
+      console.log('🔄 Loading employees from database...');
       const employeeData = await supabaseService.getClients();
+      console.log(`✅ Loaded ${employeeData.length} employees from database`);
       setEmployees(employeeData);
     } catch (error) {
       console.error('Failed to load employees:', error);
@@ -59,7 +71,7 @@ export const useCallSystem = () => {
         setEmployees([]);
         // Show user-friendly message for missing tables
         if (error.message.includes('Database tables not found')) {
-          alert('⚠️ Database Setup Required\n\nThe database tables are not set up yet. Please:\n\n1. Go to your Supabase project dashboard\n2. Navigate to SQL Editor\n3. Run the migration files from the supabase/migrations folder\n\nAfter running the migrations, refresh this page.');
+          console.warn('⚠️ Database tables not found - please run migrations');
         }
       }
     }

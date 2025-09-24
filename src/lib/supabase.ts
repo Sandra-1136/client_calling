@@ -13,6 +13,19 @@ const isSupabaseConfigured = () => {
          supabaseAnonKey.length > 20;
 };
 
+// Test connection function
+const testSupabaseConnection = async () => {
+  if (!supabase) return false;
+  
+  try {
+    const { data, error } = await supabase.from('clients').select('count').limit(1);
+    return !error;
+  } catch (error) {
+    console.error('Supabase connection test failed:', error);
+    return false;
+  }
+};
+
 // Create a placeholder client if environment variables are missing
 const createSupabaseClient = () => {
   if (!isSupabaseConfigured()) {
@@ -23,7 +36,7 @@ const createSupabaseClient = () => {
   }
   
   try {
-    return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -34,6 +47,17 @@ const createSupabaseClient = () => {
         },
       },
     });
+    
+    // Test connection on creation
+    testSupabaseConnection().then(connected => {
+      if (connected) {
+        console.log('✅ Supabase connection successful');
+      } else {
+        console.warn('⚠️ Supabase connection test failed - check database setup');
+      }
+    });
+    
+    return client;
   } catch (error) {
     console.error('Failed to create Supabase client:', error);
     return null;
