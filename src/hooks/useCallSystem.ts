@@ -214,6 +214,11 @@ export const useCallSystem = () => {
             if (missedClients.length > 0) {
               console.log(`🔄 Round 1 completed. Starting Round 2 with ${missedClients.length} missed clients.`);
               setStats(prev => ({ ...prev, currentRound: 2 }));
+            }
+          }
+        }
+        )
+      }
       const nextIndex = employeeIndex + 1;
       autoCallTimeoutRef.current = setTimeout(() => {
         if (isAutoCallingRef.current) {
