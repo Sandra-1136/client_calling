@@ -233,9 +233,6 @@ function App() {
         <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          {/* Connection Status */}
-          <ConnectionStatus employees={employees} />
-          
           <div className="flex items-center justify-center space-x-4 mb-4">
             <div className="bg-indigo-600 p-4 rounded-full shadow-lg">
               <PhoneCall className="w-10 h-10 text-white" />
