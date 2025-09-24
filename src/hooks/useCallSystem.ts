@@ -210,7 +210,8 @@ export const useCallSystem = () => {
         }
       }, 1500);
     }
-  }, [employees, callEmployee, stopAutoCalling, stats.currentRound]);
+  }
+  )
 
   const startAutoCalling = useCallback(() => {
     if (isAutoCallActive || employees.length === 0) {
