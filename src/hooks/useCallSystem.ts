@@ -209,35 +209,35 @@ export const useCallSystem = () => {
     }
     
     // Check if current round is completed - Continues: Until all not answered contacts are reached
-    if (employeeIndex >= clientsToCall.length) {
-      console.log(`🔄 Round ${currentRound} completed - checking for not answered contacts`);
-      
-      // Continues: Until all not answered contacts are reached
-      const stillUnanswered = employees.filter(emp => 
-        emp.status === 'pending' || emp.status === 'missed'
-      );
-      
-      // ✅ Auto Stops: When everyone has answered
-      if (stillUnanswered.length === 0) {
-        console.log(`✅ Auto Stops: Everyone has answered after ${currentRound} rounds!`);
-        alert('🎉 Auto Stops: Everyone has answered! All contacts reached successfully!');
-        stopAutoCalling();
-        return;
-      }
-      
-      // ♻️ Continues: Until all not answered contacts are reached
-      const nextRound = currentRound + 1;
-      console.log(`♻️ Continues: ${stillUnanswered.length} not answered contacts remain. Starting Round ${nextRound}...`);
-      setStats(prev => ({ ...prev, currentRound: nextRound }));
-      
-      // Start next round after 2-second delay
-      autoCallTimeoutRef.current = setTimeout(() => {
-        if (isAutoCallingRef.current) {
-          processAutoCall(0);
-        }
-      }, 2000);
-      return;
+    // At the end of a round:
+if (employeeIndex >= clientsToCall.length) {
+  console.log(`🔄 Round ${currentRound} completed`);
+
+  // Check unanswered again
+  const stillUnanswered = employees.filter(emp => 
+    emp.status === 'pending' || emp.status === 'missed'
+  );
+
+  if (stillUnanswered.length === 0) {
+    console.log(`✅ All clients successfully reached after ${currentRound} rounds!`);
+    alert('🎉 All clients have been successfully reached!');
+    stopAutoCalling();
+    return; // ⛔ stop right here
+  }
+
+  // Otherwise, schedule next round
+  const nextRound = currentRound + 1;
+  setStats(prev => ({ ...prev, currentRound: nextRound }));
+  console.log(`♻️ ${stillUnanswered.length} clients still unanswered. Starting Round ${nextRound}...`);
+
+  autoCallTimeoutRef.current = setTimeout(() => {
+    if (isAutoCallingRef.current) {
+      processAutoCall(0);
     }
+  }, 2000);
+  return;
+}
+
     
     // Get current client to call
     const currentClient = clientsToCall[employeeIndex];
