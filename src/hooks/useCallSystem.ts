@@ -203,22 +203,6 @@ export const useCallSystem = () => {
     
     // Continue to next unanswered client after a short delay
     if (isAutoCallingRef.current) {
-      if (isLastInRound) {
-        // We've completed this round, check what to do next
-        autoCallTimeoutRef.current = setTimeout(() => {
-          if (!isAutoCallingRef.current) return;
-          
-          if (stats.currentRound === 1) {
-            // Check if there are missed clients for round 2
-            const missedClients = employees.filter(emp => emp.status === 'missed');
-            if (missedClients.length > 0) {
-              console.log(`🔄 Round 1 completed. Starting Round 2 with ${missedClients.length} missed clients.`);
-              setStats(prev => ({ ...prev, currentRound: 2 }));
-            }
-          }
-        }
-        )
-      }
       const nextIndex = employeeIndex + 1;
       autoCallTimeoutRef.current = setTimeout(() => {
         if (isAutoCallingRef.current) {
@@ -226,7 +210,7 @@ export const useCallSystem = () => {
         }
       }, 1500);
     }
-  }, [employees, callEmployee, stopAutoCalling]);
+  }, [employees, callEmployee, stopAutoCalling, stats.currentRound]);
 
   const startAutoCalling = useCallback(() => {
     if (isAutoCallActive || employees.length === 0) {
